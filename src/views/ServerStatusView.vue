@@ -159,8 +159,8 @@ onUnmounted(() => {
             </div>
             <div class="card-title-wrap">
               <div class="title-badge-wrap">
-                <h3>CPU Usage</h3>
-                <span class="type-badge">Intel Core i5</span>
+                <h3 class="card-title">CPU Usage</h3>
+                <span class="type-badge cpu-badge">Intel Core i5</span>
               </div>
               <span class="stat-subtitle font-mono">{{ cpuStats.model || '12 Cores Active' }}</span>
             </div>
@@ -169,11 +169,8 @@ onUnmounted(() => {
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
-                class="progress-bar-fill" 
-                :style="{ 
-                  width: Math.max(cpuStats.usage, 2) + '%', 
-                  background: cpuStats.usage > 80 ? '#ef4444' : 'linear-gradient(90deg, #00d2ff, #3b82f6)'
-                }"
+                class="progress-bar-fill fill-cpu" 
+                :style="{ width: Math.max(cpuStats.usage, 2) + '%' }"
               ></div>
             </div>
             <div class="progress-text-row">
@@ -191,26 +188,23 @@ onUnmounted(() => {
             </div>
             <div class="card-title-wrap">
               <div class="title-badge-wrap">
-                <h3>Memory (RAM)</h3>
+                <h3 class="card-title">Memory (RAM)</h3>
                 <span class="type-badge ram-badge">DDR4 Memory</span>
               </div>
-              <span class="stat-subtitle">High-Speed Dual-Channel (16 GB Physical)</span>
+              <span class="stat-subtitle">High-Speed Dual-Channel (16 GB)</span>
             </div>
           </div>
 
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
-                class="progress-bar-fill" 
-                :style="{ 
-                  width: Math.max(ramStats.percentage, 2) + '%', 
-                  background: ramStats.percentage > 85 ? '#ef4444' : 'linear-gradient(90deg, #10b981, #34d399)'
-                }"
+                class="progress-bar-fill fill-ram" 
+                :style="{ width: Math.max(ramStats.percentage, 2) + '%' }"
               ></div>
             </div>
             <div class="progress-text-row">
               <span class="main-val font-mono">{{ ramStats.used }} GB <span class="total-unit">/ {{ ramStats.total }} GB</span></span>
-              <span class="sub-val text-emerald-400 font-mono">{{ ramStats.percentage }}% In Use</span>
+              <span class="sub-val val-emerald font-mono">{{ ramStats.percentage }}% In Use</span>
             </div>
           </div>
         </div>
@@ -223,7 +217,7 @@ onUnmounted(() => {
             </div>
             <div class="card-title-wrap">
               <div class="title-badge-wrap">
-                <h3>NVMe Storage</h3>
+                <h3 class="card-title">NVMe Storage</h3>
                 <span class="type-badge disk-badge">PCIe NVMe SSD</span>
               </div>
               <span class="stat-subtitle">High-IOPS Solid State Drive (256 GB)</span>
@@ -233,16 +227,13 @@ onUnmounted(() => {
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
-                class="progress-bar-fill" 
-                :style="{ 
-                  width: Math.max(hddStats.percentage, 2) + '%', 
-                  background: hddStats.percentage > 90 ? '#ef4444' : 'linear-gradient(90deg, #8b5cf6, #a855f7)'
-                }"
+                class="progress-bar-fill fill-disk" 
+                :style="{ width: Math.max(hddStats.percentage, 2) + '%' }"
               ></div>
             </div>
             <div class="progress-text-row">
               <span class="main-val font-mono">{{ hddStats.used }} GB <span class="total-unit">/ {{ hddStats.total }} GB</span></span>
-              <span class="sub-val text-purple-400 font-mono">{{ hddStats.percentage }}% Used</span>
+              <span class="sub-val val-purple font-mono">{{ hddStats.percentage }}% Used</span>
             </div>
           </div>
         </div>
@@ -252,7 +243,7 @@ onUnmounted(() => {
       <div class="status-table is-card">
         <div class="table-top-bar">
           <h3 class="table-title">System & Cluster Status</h3>
-          <span class="table-pill"><i class="bi bi-shield-check text-emerald-400"></i> High Availability</span>
+          <span class="table-pill"><i class="bi bi-shield-check val-emerald"></i> High Availability</span>
         </div>
 
         <div class="table-head">
@@ -276,7 +267,7 @@ onUnmounted(() => {
           </div>
 
           <div class="uptime-col font-mono">{{ srv.uptime }}</div>
-          <div class="latency-col font-mono text-cyan">{{ srv.latency }}</div>
+          <div class="latency-col font-mono val-cyan">{{ srv.latency }}</div>
         </div>
       </div>
     </div>
@@ -305,7 +296,7 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--is-primary);
   text-decoration: none;
-  transition: transform 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease;
   padding: 0.35rem 0.75rem;
   border-radius: var(--is-radius-sm);
   background: var(--is-bg-surface);
@@ -340,7 +331,7 @@ onUnmounted(() => {
 .badge-online {
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  color: var(--is-accent-green);
 }
 
 .badge-offline {
@@ -353,8 +344,8 @@ onUnmounted(() => {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 10px #10b981;
+  background: var(--is-accent-green);
+  box-shadow: 0 0 10px var(--is-accent-green);
   animation: pulse-green 2s infinite;
 }
 
@@ -365,9 +356,9 @@ onUnmounted(() => {
 }
 
 @keyframes pulse-green {
-  0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
-  70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
 }
 
 .view-title {
@@ -392,7 +383,7 @@ onUnmounted(() => {
   font-size: 0.78rem;
   color: var(--is-text-dim);
   background: var(--is-bg-surface);
-  padding: 0.3rem 0.8rem;
+  padding: 0.35rem 0.85rem;
   border-radius: var(--is-radius-full);
   border: 1px solid var(--is-border);
 }
@@ -405,9 +396,9 @@ onUnmounted(() => {
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
   gap: 1.5rem;
-  max-width: 1000px;
+  max-width: 1050px;
   margin: 0 auto 2.5rem;
 }
 
@@ -435,6 +426,7 @@ onUnmounted(() => {
 .card-icon-box {
   width: 44px;
   height: 44px;
+  min-width: 44px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -444,71 +436,79 @@ onUnmounted(() => {
 
 .cpu-icon {
   background: rgba(0, 210, 255, 0.12);
-  color: #00d2ff;
+  color: var(--is-primary);
   border: 1px solid rgba(0, 210, 255, 0.25);
 }
 
 .ram-icon {
   background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: var(--is-accent-green);
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .disk-icon {
-  background: rgba(139, 92, 246, 0.12);
-  color: #a855f7;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--is-accent-purple);
+  border: 1px solid rgba(168, 85, 247, 0.25);
 }
 
 .card-title-wrap {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
 }
 
 .title-badge-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.title-badge-wrap h3 {
-  font-size: 1.12rem;
+.card-title {
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--is-title);
   margin: 0;
-  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .type-badge {
   font-size: 0.68rem;
   font-weight: 700;
-  padding: 0.15rem 0.5rem;
+  padding: 0.18rem 0.55rem;
   border-radius: var(--is-radius-sm);
-  background: rgba(0, 210, 255, 0.12);
-  color: #00d2ff;
-  border: 1px solid rgba(0, 210, 255, 0.25);
+  white-space: nowrap;
   letter-spacing: 0.02em;
+}
+
+.cpu-badge {
+  background: rgba(0, 210, 255, 0.12);
+  color: var(--is-primary);
+  border: 1px solid rgba(0, 210, 255, 0.25);
 }
 
 .ram-badge {
   background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.25);
+  color: var(--is-accent-green);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .disk-badge {
-  background: rgba(139, 92, 246, 0.12);
-  color: #c084fc;
-  border-color: rgba(139, 92, 246, 0.25);
+  background: rgba(168, 85, 247, 0.12);
+  color: var(--is-accent-purple);
+  border: 1px solid rgba(168, 85, 247, 0.25);
 }
 
 .stat-subtitle {
   font-size: 0.74rem;
   color: var(--is-text-dim);
   font-weight: 600;
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .progress-container {
@@ -517,8 +517,8 @@ onUnmounted(() => {
 
 .progress-bar-bg {
   width: 100%;
-  height: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 9px;
+  background: var(--is-border);
   border-radius: 10px;
   overflow: hidden;
   margin-bottom: 0.85rem;
@@ -528,6 +528,18 @@ onUnmounted(() => {
   height: 100%;
   border-radius: 10px;
   transition: width 0.6s ease;
+}
+
+.fill-cpu {
+  background: linear-gradient(90deg, var(--is-primary), var(--is-accent-blue));
+}
+
+.fill-ram {
+  background: linear-gradient(90deg, var(--is-accent-green), #10b981);
+}
+
+.fill-disk {
+  background: linear-gradient(90deg, var(--is-accent-purple), #8b5cf6);
 }
 
 .progress-text-row {
@@ -554,9 +566,21 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
+.val-emerald {
+  color: var(--is-accent-green) !important;
+}
+
+.val-purple {
+  color: var(--is-accent-purple) !important;
+}
+
+.val-cyan {
+  color: var(--is-primary) !important;
+}
+
 /* Table */
 .status-table {
-  max-width: 1000px;
+  max-width: 1050px;
   margin: 0 auto;
   padding: 0;
   background: var(--is-bg-card);
@@ -644,12 +668,8 @@ onUnmounted(() => {
 .status-pill.operational {
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  color: #34d399;
+  color: var(--is-accent-green);
 }
-
-.text-cyan { color: var(--is-primary); }
-.text-emerald-400 { color: #34d399; }
-.text-purple-400 { color: #c084fc; }
 
 @media (max-width: 768px) {
   .table-head, .table-row {
