@@ -20,6 +20,10 @@ const routes: Array<RouteRecordRaw> = [
     component: ServerStatusView
   },
   {
+    path: '/server-status',
+    redirect: '/status'
+  },
+  {
     path: '/:pathMatch(.*)*',
     redirect: '/'
   }

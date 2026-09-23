@@ -90,7 +90,7 @@ import { techStackData } from '@/data/isupportData';
           </div>
         </div>
         <div class="infra-right">
-          <router-link to="/server-status" class="is-btn is-btn-secondary infra-btn">
+          <router-link to="/status" class="is-btn is-btn-secondary infra-btn">
             <i class="bi bi-activity"></i>
             <span>Live Server Telemetry</span>
           </router-link>
