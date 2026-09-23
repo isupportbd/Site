@@ -8,8 +8,8 @@ const lastUpdated = ref<string>('');
 
 const cpuStats = ref({
   usage: 0,
-  cores: 0,
-  model: ''
+  cores: 12,
+  model: 'Intel(R) Core(TM) i5-10400 @ 2.90GHz'
 });
 
 const ramStats = ref({
@@ -18,25 +18,24 @@ const ramStats = ref({
   percentage: 0
 });
 
-const diskStats = ref({
+const hddStats = ref({
   used: 0,
   total: 0,
   percentage: 0
 });
 
 const systemInfo = ref({
-  platform: '',
-  uptime: '0h 0m',
-  hostname: ''
+  platform: 'Linux / Private Node',
+  uptime: '0h 0m'
 });
 
 const services = ref([
-  { name: 'IDP Production (idp.isupportbd.com)', status: 'Operational', uptime: '99.99%', latency: '24ms', region: 'In-House Private Server' },
-  { name: 'ZeroVAT Automation Engine (zerovat.isupportbd.com)', status: 'Operational', uptime: '99.99%', latency: '21ms', region: 'In-House Private Server' },
-  { name: 'Analyser VAT Verification (analyser.isupportbd.com)', status: 'Operational', uptime: '99.98%', latency: '31ms', region: 'In-House Private Server' },
-  { name: 'Shailik Fashion ERP Cluster', status: 'Operational', uptime: '99.99%', latency: '18ms', region: 'In-House Server Node' },
-  { name: 'e-VAT Sync Service Gateway', status: 'Operational', uptime: '99.95%', latency: '45ms', region: 'In-House Server Node' },
-  { name: 'Baybosayee POS Cloud Database', status: 'Operational', uptime: '99.99%', latency: '19ms', region: 'In-House Server Node' },
+  { name: 'IDP Production (idp.isupportbd.com)', status: 'Operational', uptime: '99.99%', latency: '24ms', region: 'In-House Dedicated Server' },
+  { name: 'ZeroVAT Automation Engine (zerovat.isupportbd.com)', status: 'Operational', uptime: '99.99%', latency: '21ms', region: 'In-House Dedicated Server' },
+  { name: 'Analyser VAT Verification (analyser.isupportbd.com)', status: 'Operational', uptime: '99.98%', latency: '31ms', region: 'In-House Dedicated Server' },
+  { name: 'Shailik Fashion ERP Cluster', status: 'Operational', uptime: '99.99%', latency: '18ms', region: 'In-House Dedicated Node' },
+  { name: 'e-VAT Sync Service Gateway', status: 'Operational', uptime: '99.95%', latency: '45ms', region: 'In-House Dedicated Node' },
+  { name: 'Baybosayee POS Cloud Database', status: 'Operational', uptime: '99.99%', latency: '19ms', region: 'In-House Dedicated Node' },
   { name: 'Credential Security Vault (AES-256 HSM)', status: 'Operational', uptime: '100%', latency: '12ms', region: 'Encrypted Vault' }
 ]);
 
@@ -52,10 +51,12 @@ let intervalId: ReturnType<typeof setInterval>;
 
 const fetchStatus = async () => {
   try {
-    // Try local Hono endpoint first, fallback to external if needed
-    let res = await fetch('/api/system-status').catch(() => null);
+    // 1. Fetch live telemetry directly from the host system API
+    let res = await fetch('https://api-idp.isupportbd.com/api/system-status').catch(() => null);
+    
+    // 2. Fallback to local server endpoint if direct IDP API fails
     if (!res || !res.ok) {
-      res = await fetch('https://api-idp.isupportbd.com/api/system-status').catch(() => null);
+      res = await fetch('/api/system-status').catch(() => null);
     }
 
     if (res && res.ok) {
@@ -63,36 +64,36 @@ const fetchStatus = async () => {
       
       // CPU
       cpuStats.value = {
-        usage: data.cpu?.usage || 0,
-        cores: data.cpu?.cores || 4,
-        model: data.cpu?.model || 'Cloud Server vCPU'
+        usage: data.cpu?.usage ?? 0,
+        cores: data.cpu?.cores ?? 12,
+        model: data.cpu?.model || 'Intel(R) Core(TM) i5-10400 @ 2.90GHz'
       };
 
-      // RAM (Bytes to GB)
-      const rUsed = data.ram?.used > 1000 ? parseFloat((data.ram.used / (1024 ** 3)).toFixed(1)) : data.ram?.used || 0;
-      const rTotal = data.ram?.total > 1000 ? parseFloat((data.ram.total / (1024 ** 3)).toFixed(1)) : data.ram?.total || 0;
-      ramStats.value = {
-        used: rUsed,
-        total: rTotal,
-        percentage: data.ram?.percentage || (rTotal ? Math.round((rUsed / rTotal) * 100) : 0)
-      };
-
-      // Disk (Bytes to GB)
-      const dUsed = data.disk?.used > 1000 ? parseFloat((data.disk.used / (1024 ** 3)).toFixed(1)) : data.disk?.used || 0;
-      const dTotal = data.disk?.total > 1000 ? parseFloat((data.disk.total / (1024 ** 3)).toFixed(1)) : data.disk?.total || 0;
-      diskStats.value = {
-        used: dUsed,
-        total: dTotal,
-        percentage: data.disk?.percentage || (dTotal ? Math.round((dUsed / dTotal) * 100) : 0)
-      };
-
-      // System info
-      if (data.system?.uptime) {
-        systemInfo.value = {
-          platform: data.system.platform || 'Linux',
-          uptime: formatUptime(data.system.uptime),
-          hostname: data.system.hostname || 'Production-Node'
+      // RAM Calculation (exact Byte to GB)
+      if (data.ram) {
+        const rUsed = data.ram.used > 1000 ? parseFloat((data.ram.used / (1024 ** 3)).toFixed(1)) : data.ram.used;
+        const rTotal = data.ram.total > 1000 ? parseFloat((data.ram.total / (1024 ** 3)).toFixed(1)) : data.ram.total;
+        ramStats.value = {
+          used: rUsed,
+          total: rTotal,
+          percentage: data.ram.percentage ?? (rTotal ? Math.round((rUsed / rTotal) * 100) : 0)
         };
+      }
+
+      // Hard Disk / NVMe Calculation (exact Byte to GB)
+      if (data.disk) {
+        const dUsed = data.disk.used > 1000 ? parseFloat((data.disk.used / (1024 ** 3)).toFixed(1)) : data.disk.used;
+        const dTotal = data.disk.total > 1000 ? parseFloat((data.disk.total / (1024 ** 3)).toFixed(1)) : data.disk.total;
+        hddStats.value = {
+          used: dUsed,
+          total: dTotal,
+          percentage: data.disk.percentage ?? (dTotal ? Math.round((dUsed / dTotal) * 100) : 0)
+        };
+      }
+
+      // Uptime
+      if (data.uptime) {
+        systemInfo.value.uptime = formatUptime(data.uptime);
       }
 
       lastUpdated.value = new Date().toLocaleTimeString();
@@ -110,7 +111,7 @@ const fetchStatus = async () => {
 
 onMounted(() => {
   fetchStatus();
-  intervalId = setInterval(fetchStatus, 5000); // 5 sec auto refresh
+  intervalId = setInterval(fetchStatus, 5000); // Live poll every 5s
 });
 
 onUnmounted(() => {
@@ -130,46 +131,48 @@ onUnmounted(() => {
         
         <div class="status-overall-badge" :class="isOnline ? 'badge-online' : 'badge-offline'">
           <span class="pulse-dot" :class="{ 'pulse-offline': !isOnline }"></span>
-          <span>{{ isOnline ? 'All Systems 100% Operational' : 'Telemetry Degraded / Offline' }}</span>
+          <span>{{ isOnline ? 'System Online (100% Operational)' : 'System Telemetry Offline' }}</span>
         </div>
 
-        <h1 class="view-title">iSupportBD System Telemetry & Uptime</h1>
+        <h1 class="view-title">iSupportBD Server Status</h1>
         <p class="view-desc">
-          Real-time operational health, hardware metrics, and cloud infrastructure telemetry.
+          Current resource utilization across all live ERP, POS, VAT engines, and in-house servers.
         </p>
         
         <div v-if="lastUpdated" class="last-sync-badge">
-          <i class="bi bi-clock-history"></i>
-          <span>Live Sync: {{ lastUpdated }} (Auto 5s)</span>
+          <i class="bi bi-arrow-repeat"></i>
+          <span>Live Auto-Sync: {{ lastUpdated }}</span>
+          <span class="uptime-tag" v-if="systemInfo.uptime">• Uptime: {{ systemInfo.uptime }}</span>
         </div>
       </div>
 
-      <!-- Realtime Hardware Metrics Cards Grid -->
+      <!-- Stats Grid (CPU, RAM, Hard Disk) -->
       <div class="stats-grid">
         <!-- CPU Card -->
         <div class="is-card stat-card">
           <div class="card-header">
             <div class="card-icon-box cpu-icon">
-              <i class="bi bi-cpu-fill"></i>
+              <i class="bi bi-cpu"></i>
             </div>
             <div class="card-title-wrap">
-              <h3>CPU Utilization</h3>
+              <h3>CPU Usage</h3>
               <span class="stat-subtitle">{{ cpuStats.cores }} Cores Active</span>
             </div>
           </div>
+          
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
                 class="progress-bar-fill" 
                 :style="{ 
                   width: cpuStats.usage + '%', 
-                  background: cpuStats.usage > 85 ? '#ef4444' : (cpuStats.usage > 60 ? '#f59e0b' : 'linear-gradient(90deg, #00d2ff, #3b82f6)')
+                  background: cpuStats.usage > 80 ? '#ef4444' : 'linear-gradient(90deg, #00d2ff, #3b82f6)'
                 }"
               ></div>
             </div>
-            <div class="progress-text">
-              <span class="font-mono text-xl">{{ cpuStats.usage }}%</span>
-              <span class="sub-text">{{ cpuStats.model || 'Multi-Core Processor' }}</span>
+            <div class="progress-text-row">
+              <span class="main-val font-mono">{{ cpuStats.usage }}%</span>
+              <span class="sub-val">{{ cpuStats.cores }} Cores</span>
             </div>
           </div>
         </div>
@@ -182,9 +185,10 @@ onUnmounted(() => {
             </div>
             <div class="card-title-wrap">
               <h3>Memory (RAM)</h3>
-              <span class="stat-subtitle">{{ ramStats.percentage }}% Allocated</span>
+              <span class="stat-subtitle">{{ ramStats.percentage }}% Used</span>
             </div>
           </div>
+
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
@@ -195,37 +199,38 @@ onUnmounted(() => {
                 }"
               ></div>
             </div>
-            <div class="progress-text">
-              <span class="font-mono text-xl">{{ ramStats.used }} GB <span class="text-sm">/ {{ ramStats.total }} GB</span></span>
-              <span class="sub-text font-mono text-emerald-400">{{ ramStats.percentage }}% In Use</span>
+            <div class="progress-text-row">
+              <span class="main-val font-mono">{{ ramStats.used }} GB <span class="total-unit">/ {{ ramStats.total }} GB</span></span>
+              <span class="sub-val text-emerald-400 font-mono">{{ ramStats.percentage }}% In Use</span>
             </div>
           </div>
         </div>
 
-        <!-- Disk Card -->
+        <!-- Hard Disk Card -->
         <div class="is-card stat-card">
           <div class="card-header">
             <div class="card-icon-box disk-icon">
-              <i class="bi bi-device-hdd-fill"></i>
+              <i class="bi bi-device-hdd"></i>
             </div>
             <div class="card-title-wrap">
-              <h3>NVMe / Storage</h3>
-              <span class="stat-subtitle">{{ diskStats.percentage }}% Capacity</span>
+              <h3>Hard Disk Space</h3>
+              <span class="stat-subtitle">{{ hddStats.percentage }}% Used</span>
             </div>
           </div>
+
           <div class="progress-container">
             <div class="progress-bar-bg">
               <div 
                 class="progress-bar-fill" 
                 :style="{ 
-                  width: diskStats.percentage + '%', 
-                  background: diskStats.percentage > 90 ? '#ef4444' : 'linear-gradient(90deg, #8b5cf6, #a855f7)'
+                  width: hddStats.percentage + '%', 
+                  background: hddStats.percentage > 90 ? '#ef4444' : 'linear-gradient(90deg, #8b5cf6, #a855f7)'
                 }"
               ></div>
             </div>
-            <div class="progress-text">
-              <span class="font-mono text-xl">{{ diskStats.used }} GB <span class="text-sm">/ {{ diskStats.total }} GB</span></span>
-              <span class="sub-text font-mono text-purple-400">{{ diskStats.percentage }}% Allocated</span>
+            <div class="progress-text-row">
+              <span class="main-val font-mono">{{ hddStats.used }} GB <span class="total-unit">/ {{ hddStats.total }} GB</span></span>
+              <span class="sub-val text-purple-400 font-mono">{{ hddStats.percentage }}% Used</span>
             </div>
           </div>
         </div>
@@ -234,7 +239,7 @@ onUnmounted(() => {
       <!-- Services Uptime Table -->
       <div class="status-table is-card">
         <div class="table-top-bar">
-          <h3 class="table-title">Enterprise Systems & Service Gateway Status</h3>
+          <h3 class="table-title">System & Cluster Status</h3>
           <span class="table-pill"><i class="bi bi-shield-check text-emerald-400"></i> High Availability</span>
         </div>
 
@@ -299,9 +304,9 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.4rem 1.1rem;
+  padding: 0.45rem 1.25rem;
   border-radius: var(--is-radius-full);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 700;
   margin-bottom: 1rem;
 }
@@ -340,7 +345,7 @@ onUnmounted(() => {
 }
 
 .view-title {
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 800;
   color: var(--is-title);
   margin-bottom: 0.6rem;
@@ -356,11 +361,19 @@ onUnmounted(() => {
 .last-sync-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
-  font-size: 0.76rem;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+  font-size: 0.78rem;
   color: var(--is-text-dim);
-  font-family: monospace;
+  background: var(--is-bg-surface);
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--is-radius-full);
+  border: 1px solid var(--is-border);
+}
+
+.uptime-tag {
+  color: var(--is-primary);
+  font-weight: 600;
 }
 
 /* Stats Grid */
@@ -373,16 +386,23 @@ onUnmounted(() => {
 }
 
 .stat-card {
-  padding: 1.5rem;
+  padding: 1.6rem;
   background: var(--is-bg-card);
   border: 1px solid var(--is-border);
   border-radius: var(--is-radius-lg);
+  box-shadow: var(--is-shadow-sm);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--is-border-focus);
 }
 
 .card-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
   margin-bottom: 1.25rem;
 }
 
@@ -393,7 +413,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.3rem;
+  font-size: 1.35rem;
 }
 
 .cpu-icon {
@@ -414,17 +434,24 @@ onUnmounted(() => {
   border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
+.card-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
 .card-title-wrap h3 {
-  font-size: 1.05rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: var(--is-title);
   margin: 0;
+  line-height: 1.2;
 }
 
 .stat-subtitle {
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   color: var(--is-text-dim);
   font-weight: 600;
+  margin-top: 0.2rem;
 }
 
 .progress-container {
@@ -446,27 +473,28 @@ onUnmounted(() => {
   transition: width 0.6s ease;
 }
 
-.progress-text {
+.progress-text-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  font-weight: 700;
+  align-items: baseline;
 }
 
-.text-xl {
-  font-size: 1.25rem;
+.main-val {
+  font-size: 1.22rem;
+  font-weight: 800;
   color: var(--is-title);
 }
 
-.text-sm {
-  font-size: 0.8rem;
+.total-unit {
+  font-size: 0.85rem;
   color: var(--is-text-muted);
   font-weight: 500;
 }
 
-.sub-text {
-  font-size: 0.8rem;
+.sub-val {
+  font-size: 0.85rem;
   color: var(--is-text-muted);
+  font-weight: 700;
 }
 
 /* Table */
@@ -562,10 +590,7 @@ onUnmounted(() => {
   color: #34d399;
 }
 
-.text-cyan {
-  color: var(--is-primary);
-}
-
+.text-cyan { color: var(--is-primary); }
 .text-emerald-400 { color: #34d399; }
 .text-purple-400 { color: #c084fc; }
 
