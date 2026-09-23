@@ -122,13 +122,16 @@ onUnmounted(() => {
 <template>
   <div class="status-view">
     <div class="is-container">
-      <!-- Header -->
-      <div class="view-header">
+      <!-- Top Nav -->
+      <div class="view-top-bar">
         <router-link to="/" class="back-link">
           <i class="bi bi-arrow-left"></i>
-          <span>Back to Portal Home</span>
+          <span>Back to Home</span>
         </router-link>
-        
+      </div>
+
+      <!-- Header -->
+      <div class="view-header">
         <div class="status-overall-badge" :class="isOnline ? 'badge-online' : 'badge-offline'">
           <span class="pulse-dot" :class="{ 'pulse-offline': !isOnline }"></span>
           <span>{{ isOnline ? 'System Online (100% Operational)' : 'System Telemetry Offline' }}</span>
@@ -274,41 +277,55 @@ onUnmounted(() => {
 <style scoped>
 .status-view {
   min-height: 85vh;
-  padding: 6.5rem 0 4rem;
+  padding: 6rem 0 4rem;
   background: var(--is-bg);
 }
 
-.view-header {
-  text-align: center;
-  max-width: 720px;
-  margin: 0 auto 3rem;
+.view-top-bar {
+  max-width: 1000px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
 }
 
 .back-link {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-size: 0.84rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: var(--is-primary);
-  margin-bottom: 1.25rem;
   text-decoration: none;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, color 0.2s ease;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--is-radius-sm);
+  background: var(--is-bg-surface);
+  border: 1px solid var(--is-border);
 }
 
 .back-link:hover {
   transform: translateX(-3px);
+  border-color: var(--is-primary);
+}
+
+.view-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3rem;
 }
 
 .status-overall-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 1.25rem;
+  gap: 0.55rem;
+  padding: 0.45rem 1.35rem;
   border-radius: var(--is-radius-full);
   font-size: 0.88rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .badge-online {
