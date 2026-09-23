@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+
+# Version control
+.git
+.gitignore
+
+# Logs
+*.log
+bun-error.log*
+
+# Dev tools & config
+.vscode
+.idea
+*.md
+tmp
+temp
+scratch
+
+# Local env overrides
+.env.local
+.env.development
+.env.test
