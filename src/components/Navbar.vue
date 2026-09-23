@@ -59,6 +59,10 @@ onUnmounted(() => {
         <router-link to="/" class="nav-item">Ecosystem</router-link>
         <a href="#products" class="nav-item">Products</a>
         <a href="#vat-tool" class="nav-item">VAT Calculator</a>
+        <router-link to="/status" class="nav-item status-nav-item">
+          <span class="live-dot"></span>
+          <span>Server Status</span>
+        </router-link>
         <a href="#tech-stack" class="nav-item">Architecture</a>
         <a href="#services" class="nav-item">Services</a>
         <a href="#faq" class="nav-item">FAQ</a>
@@ -109,6 +113,10 @@ onUnmounted(() => {
         <router-link to="/" class="mobile-nav-item">Ecosystem</router-link>
         <a href="#products" class="mobile-nav-item">Products & Apps</a>
         <a href="#vat-tool" class="mobile-nav-item">VAT Calculator</a>
+        <router-link to="/status" class="mobile-nav-item d-flex align-items-center gap-2">
+          <span class="live-dot"></span>
+          <span>Server Status</span>
+        </router-link>
         <a href="#tech-stack" class="mobile-nav-item">System Architecture</a>
         <a href="#services" class="mobile-nav-item">Services</a>
         <a href="#faq" class="mobile-nav-item">FAQ</a>
@@ -220,6 +228,21 @@ onUnmounted(() => {
 }
 .nav-item:hover::after {
   width: 100%;
+}
+
+.status-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981;
+  display: inline-block;
 }
 
 /* Theme Toggle Button */

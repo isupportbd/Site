@@ -53,6 +53,7 @@ import { contactInfo, productsData } from '@/data/isupportData';
                 </a>
               </li>
               <li><a href="#services">Enterprise Services</a></li>
+              <li><router-link to="/status">Server Status & Health</router-link></li>
               <li><a href="#vat-tool">VAT Calculator</a></li>
               <li><a href="#tech-stack">System Architecture</a></li>
               <li><a href="#faq">Frequently Asked Questions</a></li>
