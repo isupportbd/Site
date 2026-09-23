@@ -158,8 +158,11 @@ onUnmounted(() => {
               <i class="bi bi-cpu"></i>
             </div>
             <div class="card-title-wrap">
-              <h3>CPU Usage</h3>
-              <span class="stat-subtitle">{{ cpuStats.cores }} Cores Active</span>
+              <div class="title-badge-wrap">
+                <h3>CPU Usage</h3>
+                <span class="type-badge">Intel Core i5</span>
+              </div>
+              <span class="stat-subtitle font-mono">{{ cpuStats.model || '12 Cores Active' }}</span>
             </div>
           </div>
           
@@ -168,14 +171,14 @@ onUnmounted(() => {
               <div 
                 class="progress-bar-fill" 
                 :style="{ 
-                  width: cpuStats.usage + '%', 
+                  width: Math.max(cpuStats.usage, 2) + '%', 
                   background: cpuStats.usage > 80 ? '#ef4444' : 'linear-gradient(90deg, #00d2ff, #3b82f6)'
                 }"
               ></div>
             </div>
             <div class="progress-text-row">
               <span class="main-val font-mono">{{ cpuStats.usage }}%</span>
-              <span class="sub-val">{{ cpuStats.cores }} Cores</span>
+              <span class="sub-val">{{ cpuStats.cores }} Cores / 12 Threads</span>
             </div>
           </div>
         </div>
@@ -187,8 +190,11 @@ onUnmounted(() => {
               <i class="bi bi-memory"></i>
             </div>
             <div class="card-title-wrap">
-              <h3>Memory (RAM)</h3>
-              <span class="stat-subtitle">{{ ramStats.percentage }}% Used</span>
+              <div class="title-badge-wrap">
+                <h3>Memory (RAM)</h3>
+                <span class="type-badge ram-badge">DDR4 Memory</span>
+              </div>
+              <span class="stat-subtitle">High-Speed Dual-Channel (16 GB Physical)</span>
             </div>
           </div>
 
@@ -197,7 +203,7 @@ onUnmounted(() => {
               <div 
                 class="progress-bar-fill" 
                 :style="{ 
-                  width: ramStats.percentage + '%', 
+                  width: Math.max(ramStats.percentage, 2) + '%', 
                   background: ramStats.percentage > 85 ? '#ef4444' : 'linear-gradient(90deg, #10b981, #34d399)'
                 }"
               ></div>
@@ -216,8 +222,11 @@ onUnmounted(() => {
               <i class="bi bi-device-hdd"></i>
             </div>
             <div class="card-title-wrap">
-              <h3>Hard Disk Space</h3>
-              <span class="stat-subtitle">{{ hddStats.percentage }}% Used</span>
+              <div class="title-badge-wrap">
+                <h3>NVMe Storage</h3>
+                <span class="type-badge disk-badge">PCIe NVMe SSD</span>
+              </div>
+              <span class="stat-subtitle">High-IOPS Solid State Drive (256 GB)</span>
             </div>
           </div>
 
@@ -226,7 +235,7 @@ onUnmounted(() => {
               <div 
                 class="progress-bar-fill" 
                 :style="{ 
-                  width: hddStats.percentage + '%', 
+                  width: Math.max(hddStats.percentage, 2) + '%', 
                   background: hddStats.percentage > 90 ? '#ef4444' : 'linear-gradient(90deg, #8b5cf6, #a855f7)'
                 }"
               ></div>
@@ -454,21 +463,52 @@ onUnmounted(() => {
 .card-title-wrap {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
-.card-title-wrap h3 {
-  font-size: 1.15rem;
+.title-badge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.title-badge-wrap h3 {
+  font-size: 1.12rem;
   font-weight: 800;
   color: var(--is-title);
   margin: 0;
   line-height: 1.2;
 }
 
+.type-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--is-radius-sm);
+  background: rgba(0, 210, 255, 0.12);
+  color: #00d2ff;
+  border: 1px solid rgba(0, 210, 255, 0.25);
+  letter-spacing: 0.02em;
+}
+
+.ram-badge {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.disk-badge {
+  background: rgba(139, 92, 246, 0.12);
+  color: #c084fc;
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
 .stat-subtitle {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   color: var(--is-text-dim);
   font-weight: 600;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
 .progress-container {
