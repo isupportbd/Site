@@ -27,14 +27,20 @@ app.get('/api/system-status', async (c) => {
 
     if (remoteRes && remoteRes.ok) {
       const data = await remoteRes.json();
+      const rawCores = data.cpu?.cores || 12;
+      const threads = data.cpu?.threads || rawCores;
+      const cores = data.cpu?.physicalCores || (threads === 12 ? 6 : Math.max(1, Math.round(threads / 2)));
+      const model = data.cpu?.model || 'Intel(R) Core(TM) i5-10400 @ 2.90GHz';
+
       return c.json({
         success: true,
         online: true,
         service: 'iSupportBD In-House Dedicated Server',
         cpu: {
           usage: data.cpu?.usage || 0,
-          cores: data.cpu?.cores || 12,
-          model: 'AMD/Intel High-Performance 12-Core Processor'
+          cores: cores,
+          threads: threads,
+          model: model
         },
         ram: data.ram,
         disk: data.disk,
@@ -51,15 +57,19 @@ app.get('/api/system-status', async (c) => {
     const freeMem = os.freemem();
     const usedMem = totalMem - freeMem;
     const cpus = os.cpus();
+    const threadsCount = cpus.length || 12;
+    const cpuModel = cpus.length > 0 && cpus[0]?.model ? cpus[0].model : 'Intel(R) Core(TM) i5-10400 @ 2.90GHz';
+    const physicalCores = threadsCount === 12 ? 6 : Math.max(1, Math.round(threadsCount / 2));
     
     return c.json({
       success: true,
       online: true,
-      service: 'iSupportBD Cloud Node',
+      service: 'iSupportBD Dedicated Server',
       cpu: {
         usage: 5,
-        cores: cpus.length || 12,
-        model: 'Dedicated Server Processor'
+        cores: physicalCores,
+        threads: threadsCount,
+        model: cpuModel
       },
       ram: {
         used: usedMem,

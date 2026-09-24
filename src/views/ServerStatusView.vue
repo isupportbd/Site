@@ -8,7 +8,8 @@ const lastUpdated = ref<string>('');
 
 const cpuStats = ref({
   usage: 0,
-  cores: 12,
+  cores: 6,
+  threads: 12,
   model: 'Intel(R) Core(TM) i5-10400 @ 2.90GHz'
 });
 
@@ -47,6 +48,20 @@ function formatUptime(seconds: number) {
   return `${hours}h ${minutes}m`;
 }
 
+function getCpuBadge(model: string) {
+  if (!model) return 'Intel Core i5-10400';
+  if (model.includes('10400') || model.includes('i5-10400')) return 'Intel Core i5-10400';
+  if (model.includes('Intel')) {
+    const match = model.match(/i[3579]-[\w\d]+/i) || model.match(/Xeon[\w\s-]+/i);
+    return match ? `Intel ${match[0]}` : 'Intel Core';
+  }
+  if (model.includes('AMD') || model.includes('Ryzen') || model.includes('EPYC')) {
+    const match = model.match(/Ryzen\s*\d*\s*[\d\w]+/i) || model.match(/EPYC[\w\s-]+/i);
+    return match ? `AMD ${match[0]}` : 'AMD Processor';
+  }
+  return 'Dedicated CPU';
+}
+
 let intervalId: ReturnType<typeof setInterval>;
 
 const fetchStatus = async () => {
@@ -62,11 +77,42 @@ const fetchStatus = async () => {
     if (res && res.ok) {
       const data = await res.json();
       
-      // CPU
+      // CPU Cores and Threads calculation
+      const rawCores = data.cpu?.cores;
+      const rawThreads = data.cpu?.threads;
+      const model = data.cpu?.model || 'Intel(R) Core(TM) i5-10400 @ 2.90GHz';
+      
+      let cores = 6;
+      let threads = 12;
+
+      if (rawCores && rawThreads) {
+        cores = rawCores;
+        threads = rawThreads;
+      } else if (rawCores) {
+        // Handle logical threads vs physical cores (e.g. i5-10400 has 6 physical cores and 12 threads)
+        if (rawCores === 12 || model.includes('10400') || model.includes('i5-10400')) {
+          cores = 6;
+          threads = 12;
+        } else if (rawCores === 16) {
+          cores = 8;
+          threads = 16;
+        } else if (rawCores === 8) {
+          cores = 4;
+          threads = 8;
+        } else if (rawCores <= 4) {
+          cores = rawCores;
+          threads = rawCores;
+        } else {
+          threads = rawCores;
+          cores = Math.max(1, Math.round(rawCores / 2));
+        }
+      }
+
       cpuStats.value = {
         usage: data.cpu?.usage ?? 0,
-        cores: data.cpu?.cores ?? 12,
-        model: data.cpu?.model || 'Intel(R) Core(TM) i5-10400 @ 2.90GHz'
+        cores,
+        threads,
+        model
       };
 
       // RAM Calculation (exact Byte to GB)
@@ -160,9 +206,9 @@ onUnmounted(() => {
             <div class="card-title-wrap">
               <div class="title-badge-wrap">
                 <h3 class="card-title">CPU Usage</h3>
-                <span class="type-badge cpu-badge">Intel Core i5</span>
+                <span class="type-badge cpu-badge">{{ getCpuBadge(cpuStats.model) }}</span>
               </div>
-              <span class="stat-subtitle font-mono">{{ cpuStats.model || '12 Cores Active' }}</span>
+              <span class="stat-subtitle font-mono">{{ cpuStats.model || '6 Cores / 12 Threads' }}</span>
             </div>
           </div>
           
@@ -175,7 +221,7 @@ onUnmounted(() => {
             </div>
             <div class="progress-text-row">
               <span class="main-val font-mono">{{ cpuStats.usage }}%</span>
-              <span class="sub-val">{{ cpuStats.cores }} Cores / 12 Threads</span>
+              <span class="sub-val">{{ cpuStats.cores }} Cores / {{ cpuStats.threads }} Threads</span>
             </div>
           </div>
         </div>
